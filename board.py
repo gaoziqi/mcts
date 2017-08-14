@@ -50,7 +50,7 @@ class WUZI(Board):
             size = _size
 
     def __init__(self):
-        state = WUZIState(self.size)
+        state = WUZIState(self.sizecd )
 
     def start(self):
         """开始"""
