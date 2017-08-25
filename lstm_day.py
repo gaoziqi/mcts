@@ -33,9 +33,9 @@ def get(dt, step, _id):
 
 def lstm(r, _id, model, version, initial_epoch, epochs, period):
     x, y = get(r, period, _id)
-    model.load_weights('predict/weight%d_%s.h5' % (version, _id))
+    # model.load_weights('predict/weight%d_%s.h5' % (version, _id))
     model.compile(loss='mse', optimizer='adam')
-    # os.system('rm -rf logs_%d' % _id)
+    os.system('rm -rf logs_%d' % _id)
     cbks = [TensorBoard(log_dir='logs_%s' % _id, write_images=1, histogram_freq=1)]
     print('begin fit')
     model.fit(x, y, batch_size=16, initial_epoch=initial_epoch, epochs=initial_epoch + epochs, verbose=1, callbacks=cbks, validation_split=0.1)
