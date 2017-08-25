@@ -77,15 +77,15 @@ def create_train_x():
              '600100', '600074', '600734', '002376', '600601', '002180', '002351',
              '002308', '300045', '002362', '002152', '002577', '603019')
     sql0 = 'WITH '
-    sql1 = "SELECT to_char(date, 'HH24:MI:SS') AS date,"
+    sql1 = "SELECT EXTRACT(HOUR FROM date) * 60 + EXTRACT(MINUTE FROM date) AS time,"
     sql2 = 'FROM M_{0} '.format(codes[-1])
     for i in codes:
         sql0 += '''M_{1} AS (SELECT date,open as open_{1},
-            close as close_{1},high as high_{1},low as low_{1},volume as volume_{1}
+            close as close_{1},high as high_{1},low as low_{1},volume / 10000 as volume_{1}
             FROM {0} WHERE CODE='{1}' AND date>'2017-08-11'),'''.format(PRICE_MINUTES, i)
         sql1 += 'open_{0},close_{0},high_{0},low_{0},volume_{0},'.format(i)
         sql2 += 'FULL JOIN M_{0} USING(date) '.format(i)
-    sql = '%s %s %s' % (sql0[:-1], sql1[:-1], sql2[:-32])
+    sql = '%s %s %s ORDER BY date' % (sql0[:-1], sql1[:-1], sql2[:-32])
     df = pd.read_sql(sql, p.conn)
     df.to_csv('train_x.csv', index=False)
 

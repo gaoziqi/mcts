@@ -2,23 +2,23 @@ import os
 import sys
 import pandas as pd
 import numpy as np
-from _tushare import p
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, LSTM, Dropout
 from keras.callbacks import TensorBoard
 
 
 _id = '000977' if len(sys.argv) < 2 else int(sys.argv[1])
-epochs = 300 if len(sys.argv) < 3 else int(sys.argv[2])
+lstm_len = 64 if len(sys.argv) < 3 else int(sys.argv[2])
 period = 20 if len(sys.argv) < 4 else int(sys.argv[3])
+epochs = 300 if len(sys.argv) < 5 else int(sys.argv[4])
 length = None
 
 
 def build(period):
     model = Sequential()
-    model.add(LSTM(64, return_sequences=True, input_shape=(period, length)))
-    model.add(LSTM(64))
-    model.add(Dropout(0.1))
+    model.add(LSTM(lstm_len, return_sequences=True, input_shape=(period, length)))
+    model.add(LSTM(lstm_len))
+    model.add(Dropout(0.25))
     model.add(Dense(4))
     return model
 
@@ -38,6 +38,7 @@ if __name__ == '__main__':
     version = 0
     initial_epoch = 0
     r = pd.read_csv('train_x.csv')
+    r = r.fillna(-1)
     length = r.shape[1]
     x, y = get(r, step=period)
     print('begin')
