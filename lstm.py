@@ -8,7 +8,7 @@ from keras.layers import Dense, LSTM, Dropout
 from keras.callbacks import TensorBoard
 
 
-_id = 27 if len(sys.argv) < 2 else int(sys.argv[1])
+_id = '000977' if len(sys.argv) < 2 else int(sys.argv[1])
 epochs = 300 if len(sys.argv) < 3 else int(sys.argv[2])
 period = 6 if len(sys.argv) < 4 else int(sys.argv[3])
 
@@ -31,23 +31,15 @@ def get(dt, step):
     return np.array(x), np.array(y)
 
 
-def shuffle(x, y):
-    if x.shape[0] != y.shape[0]:
-        print("ERROR MUST BE EQUEL")
-    index = np.arange(x.shape[0])
-    np.random.shuffle(index)
-    x1 = []
-    y1 = []
-    for i in index:
-        x1.append(x[i])
-        y1.append(y[i])
-    return np.array(x1), np.array(y1)
-
-
 _build = True
 if __name__ == '__main__':
     version = 0
     initial_epoch = 0
+    codes = [('000977',), ('000021',), ('300076',), ('002312',), ('002635',), ('300130',),
+             ('600271',), ('300367',), ('002528',), ('000066',), ('002177',), ('300282',),
+             ('300390',), ('300042',), ('600100',), ('600074',), ('600734',), ('002376',),
+             ('600601',), ('002180',), ('002351',), ('002308',), ('300045',), ('002362',),
+             ('002152',), ('002577',), ('603019',)]
     c = CSV()
     r = pd.read_sql('''SELECT b.f_date,a.f_value,d1.f_id as infod,d2.f_id as infon,
         b.f_tempd,b.f_tempn,c.f_vac
@@ -57,20 +49,19 @@ if __name__ == '__main__':
         ''' % _id, c.conn)
     r1 = r.drop(['f_date'], 1)
     x, y = get(r1, step=period)
-    x1, y1 = shuffle(x, y)
     print('begin')
     if _build:
         model = build(period)
     else:
-        model = model_from_json(open('predict/model%d.json' % version).read())
+        model = model_from_json(open('predict/model%s.json' % version).read())
         print('load weight')
-        model.load_weights('predict/weight%d_%d.h5' % (version, _id))
+        model.load_weights('predict/weight%d_%s.h5' % (version, _id))
     # model.compile(loss='mse', optimizer='adam', metrics=['accuracy'])
     model.compile(loss='mse', optimizer='adam')
-    os.system('rm -rf logs_%d' % _id)
-    cbks = [TensorBoard(log_dir='logs_%d' % _id, write_images=1, histogram_freq=1)]
+    os.system('rm -rf logs_%s' % _id)
+    cbks = [TensorBoard(log_dir='logs_%s' % _id, write_images=1, histogram_freq=1)]
     print('begin fit')
-    model.fit(x1, y1, batch_size=2, initial_epoch=initial_epoch, epochs=initial_epoch + epochs, verbose=1, callbacks=cbks, validation_split=0.1)
+    model.fit(x, y, batch_size=16, initial_epoch=initial_epoch, epochs=initial_epoch + epochs, verbose=1, callbacks=cbks, validation_split=0.1)
     with open('predict/model%d.json' % version, 'w') as w:
         w.write(model.to_json())
     print('save weight')

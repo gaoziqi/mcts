@@ -1,28 +1,25 @@
 import tornado.ioloop
 import tornado.web
-import os
-from datetime import datetime, timedelta
-
+from datetime import datetime
+from _tushare import p, PRICE_MINUTES
 
 
 class PredictHandler(tornado.web.RequestHandler):
 
     def get(self):
         now = datetime.now()
-        _id = self.get_argument('id')
-        start = self.get_argument('start', default="2017-08-11", strip=True)
-        end = self.get_argument('end', default=now.strftime('%Y-%m-%d'), strip=True)
-        if _id == '':
+        _id = self.get_argument('code')
+        _type = self.get_argument('type')
+        start = self.get_argument('start', default="2017-08-11 00:00", strip=True)
+        end = self.get_argument('end', default=now.strftime('%Y-%m-%d %H:%M'), strip=True)
+        if _id == '' or _type == '':
             raise tornado.web.HTTPError(404)
-        print('%s -- PredictHandler: %s - id=%s, start=%s, end=%s' % (now.strftime('%Y-%m-%d %H:%M:%S'), self.request.remote_ip, _id, start, end))
-        p = Predict()
-        real = p.get(_id, start, end)
-        predict = []
-        for i in range(7):
-            predict.append(p.get(_id, start, end, True, i))
+        print('%s -- PredictHandler: %s - code=%s, start=%s, end=%s' % (now.strftime('%Y-%m-%d %H:%M:%S'), self.request.remote_ip, _id, start, end))
+        real = p._execute('''SELECT to_char(date,'YYYY-MM-DD HH24:MI:SS'), %s FROM %s WHERE code='%s' AND
+            date>'%s' AND date<'%s' ORDER BY date''' % (_type, PRICE_MINUTES, _id, start, end))
         kwargs = {
             'JS': 'js',
-            'predict': predict,
+            'predict': None,
             'real': real,
             'id': _id
         }
@@ -37,7 +34,7 @@ settings = {
 
 app = tornado.web.Application([
     (r'/predict', PredictHandler),
-], debug=False, **settings)
+], debug=True, **settings)
 
 
 if __name__ == '__main__':

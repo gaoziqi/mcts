@@ -10,7 +10,7 @@ function getOption(id, real, predict) {
     predict = str2list(predict)
     var option = {
         title: {
-            text: '预测/实际曲线图 ID＝' + id
+            text: '预测/实际曲线图 CODE＝' + id
         },
         tooltip: {
             trigger: 'axis',
@@ -26,7 +26,7 @@ function getOption(id, real, predict) {
             zlevel: 1
         },
         legend: {
-            data: ['real', 'p0', 'p1', 'p2', 'p3', 'p4', 'p5', 'p6']
+            data: ['real', 'predict']
         },
         grid: {
 
@@ -51,53 +51,11 @@ function getOption(id, real, predict) {
                 data: real
             },
             {
-                name: 'p0',
+                name: 'predict',
                 type: 'line',
                 large: true,
                 symbolSize: 3,
-                data: predict[0]
-            },
-            {
-                name: 'p1',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[1]
-            },
-            {
-                name: 'p2',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[2]
-            },
-            {
-                name: 'p3',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[3]
-            },
-            {
-                name: 'p4',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[4]
-            },
-            {
-                name: 'p5',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[5]
-            },
-            {
-                name: 'p6',
-                type: 'line',
-                large: true,
-                symbolSize: 3,
-                data: predict[6]
+                data: predict
             }
 
         ]

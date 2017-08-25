@@ -64,6 +64,7 @@ def get_k_data_minute(code):
 def init():
     # get_stock_basics()
     codes = p._execute("SELECT CODE FROM %s WHERE INDUSTRY='电脑设备' AND \"timeToMarket\"<20150101 " % STOCK_BASICS)
+    print(codes)
     for i in codes:
         # get_k_data_day(i[0])
         get_k_data_minute(i[0])
