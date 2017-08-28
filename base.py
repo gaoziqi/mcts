@@ -280,9 +280,9 @@ class Predict(Postgre):
 
     def inserts(self, time, data):
         sql = ''
-        sql1 = "INSERT INTO predict (date,open,close,high,low,volume,code) VALUES ('{1}',%f,%f,%f,%f,%f,'%s');".format(time)
+        sql1 = "INSERT INTO predict (date,open,close,high,low,volume,code) VALUES ('{0}',%f,%f,%f,%f,%f,'%s');".format(time)
         for i in data:
-            sql += sql1 % (i[0], i[1], i[2], i[3], i[4], i[5])
+            sql += sql1 % (i[0], i[1], i[2], i[3], i[4] * 10000, i[5])
         self._commit(i)
 
 

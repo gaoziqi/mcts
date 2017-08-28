@@ -92,6 +92,6 @@ def create_train_x():
 
 
 if __name__ == '__main__':
-    # init()
-    create_train_x()
+    init()
+    # create_train_x()
     print('success')

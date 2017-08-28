@@ -57,7 +57,6 @@ if __name__ == '__main__':
             if stop[_id]:
                 p.append([-1, -1, -1, -1, -1])
                 continue
-            print(_id)
             model.load_weights('predict/weight%d_%s.h5' % (version, _id))
             p0 = predictTime(model, time, x)
             p.append(p0)
