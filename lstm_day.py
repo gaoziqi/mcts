@@ -9,7 +9,8 @@ from keras.callbacks import TensorBoard
 
 lstm_len = 64 if len(sys.argv) < 2 else int(sys.argv[1])
 period = 20 if len(sys.argv) < 3 else int(sys.argv[2])
-epochs = 300 if len(sys.argv) < 4 else int(sys.argv[3])
+epochs = 100 if len(sys.argv) < 4 else int(sys.argv[3])
+delay = 47 if len(sys.argv) < 5 else int(sys.argv[4])
 length = None
 
 
@@ -25,10 +26,10 @@ def build(period):
 def get(dt, step, _id):
     x = []
     y = []
-    for i in range(len(dt) - step):
+    for i in range(len(dt) - step - delay):
         x.append(np.array(dt[i:i + step]))
-        y.append(np.array(dt.ix[i + step, ['open_%s' % _id, 'close_%s' % _id,
-                                           'high_%s' % _id, 'low_%s' % _id, 'volume_%s' % _id]]))
+        y.append(np.array(dt.ix[i + step + delay, ['open_%s' % _id, 'close_%s' % _id,
+                                                   'high_%s' % _id, 'low_%s' % _id, 'volume_%s' % _id]]))
     return np.array(x), np.array(y)
 
 
