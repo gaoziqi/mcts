@@ -72,6 +72,7 @@ def init():
 
 
 def create_train_x():
+    now = datetime.now().strftime('%Y-%m-%d')
     codes = ('000977', '000021', '300076', '002312', '002635', '300130', '600271',
              '300367', '002528', '000066', '002177', '300282', '300390', '300042',
              '600100', '600074', '600734', '002376', '600601', '002180', '002351',
@@ -82,7 +83,7 @@ def create_train_x():
     for i in codes:
         sql0 += '''M_{1} AS (SELECT date,open as open_{1},
             close as close_{1},high as high_{1},low as low_{1},volume / 10000 as volume_{1}
-            FROM {0} WHERE CODE='{1}' AND date>'2017-08-11'),'''.format(PRICE_MINUTES, i)
+            FROM {0} WHERE CODE='{1}' AND date>'2017-08-11' AND date<'{2}'),'''.format(PRICE_MINUTES, i, now)
         sql1 += 'open_{0},close_{0},high_{0},low_{0},volume_{0},'.format(i)
         sql2 += 'FULL JOIN M_{0} USING(date) '.format(i)
     sql = '%s %s %s ORDER BY date' % (sql0[:-1], sql1[:-1], sql2[:-32])

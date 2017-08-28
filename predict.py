@@ -51,16 +51,17 @@ if __name__ == '__main__':
     for t in d:
         time = date + t
         print(time)
-        p = [t]
+        p = [int(t[:2]) * 60 + int(t[3:5]) * 1.0]
         p1 = []
         for _id in codes:
             if stop[_id]:
                 p.append([-1, -1, -1, -1, -1])
                 continue
+            print(_id)
             model.load_weights('predict/weight%d_%s.h5' % (version, _id))
             p0 = predictTime(model, time, x)
             p.append(p0)
-            p1.append(p0.append(_id))
+            p1.append(np.append(p0, _id))
         predict.inserts(time, p1)
         e = np.append(x[0][1:], p)
         x = np.reshape(np.array(e), [1, preriod, -1])

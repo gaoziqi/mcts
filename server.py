@@ -10,16 +10,18 @@ class PredictHandler(tornado.web.RequestHandler):
         now = datetime.now()
         _id = self.get_argument('code')
         _type = self.get_argument('type')
-        start = self.get_argument('start', default="2017-08-11 00:00", strip=True)
-        end = self.get_argument('end', default=now.strftime('%Y-%m-%d %H:%M'), strip=True)
+        start = self.get_argument('start', default=now.strftime('%Y-%m-%d 09:30:00'), strip=True)
+        end = self.get_argument('end', default=now.strftime('%Y-%m-%d 15:05:00'), strip=True)
         if _id == '' or _type == '':
             raise tornado.web.HTTPError(404)
         print('%s -- PredictHandler: %s - code=%s, start=%s, end=%s' % (now.strftime('%Y-%m-%d %H:%M:%S'), self.request.remote_ip, _id, start, end))
         real = p._execute('''SELECT to_char(date,'YYYY-MM-DD HH24:MI:SS'), %s FROM %s WHERE code='%s' AND
             date>'%s' AND date<'%s' ORDER BY date''' % (_type, PRICE_MINUTES, _id, start, end))
+        predict = p._execute('''SELECT to_char(date,'YYYY-MM-DD HH24:MI:SS'), %s FROM predict WHERE code='%s' AND
+            date>'%s' AND date<'%s' ORDER BY date''' % (_type, _id, start, end))
         kwargs = {
             'JS': 'js',
-            'predict': None,
+            'predict': predict,
             'real': real,
             'id': _id
         }
