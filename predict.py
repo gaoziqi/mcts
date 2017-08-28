@@ -2,74 +2,65 @@ import pandas as pd
 import numpy as np
 from datetime import datetime, timedelta
 from base import Predict
-#from keras.models import model_from_json
+from keras.models import model_from_json
 
-preriod = 6
-
-
-def getDay(date, _id, conn, power=None):
-    now = datetime.now().date()
-    r = []
-    if date < now:
-        r = pd.read_sql('''SELECT a.f_value,d1.f_id as infod,d2.f_id as infon,
-        b.f_tempd,b.f_tempn,c.f_vac
-        FROM t_powerday as a,t_weatherls as b,t_workday as c,td_weather_info as d1, td_weather_info as d2
-        WHERE a.f_date + interval '1 D' = b.f_date AND b.f_date=c.f_date AND b.f_statusd=d1.f_info AND b.f_statusn=d2.f_info
-        AND f_devid='%s' AND b.f_date='%s'
-        ''' % (_id, date), conn)
-    elif date == now:
-        r = pd.read_sql('''SELECT a.f_value,d1.f_id as infod,d2.f_id as infon,
-        b.f_tempd,b.f_tempn,c.f_vac
-        FROM t_powerday as a,t_forecast as b,t_workday as c,td_weather_info as d1, td_weather_info as d2
-        WHERE a.f_date + interval '1 D' = b.f_date AND b.f_date=c.f_date AND b.f_statusd=d1.f_info AND b.f_statusn=d2.f_info
-        AND f_devid='%s' AND b.f_date='%s'
-        ''' % (_id, date), conn)
-    else:
-        r = pd.read_sql('''SELECT %f,d1.f_id as infod,d2.f_id as infon,
-        b.f_tempd,b.f_tempn,c.f_vac
-        FROM t_forecast as b,t_workday as c,td_weather_info as d1, td_weather_info as d2
-        WHERE b.f_date=c.f_date AND b.f_statusd=d1.f_info AND b.f_statusn=d2.f_info
-        AND b.f_date='%s'
-        ''' % (power, date), conn)
-    return np.array(r)
+preriod = 20
 
 
-def predictDay(model, date, _id, conn, d=None, power=None):
-    if d is None:
-        d = []
-        date1 = date - timedelta(days=preriod)
-        while date1 < date:
-            date1 += timedelta(days=1)
-            d.append(getDay(date1, _id, conn))
-        d = np.reshape(np.array(d), [1, preriod, 6])
-    else:
-        e = []
-        e.append(getDay(date, _id, conn, power))
-        e = np.append(d[0][1:], e)
-        d = np.reshape(np.array(e), [1, preriod, 6])
-    p = model.predict(d)
-    return p[0][0], d
-
-
-def predictWeek(model, date, _id, predict):
-    start = date
-    end = date + timedelta(days=7)
-    p = None
-    d = None
-    while start < end:
-        p, d = predictDay(model, start, _id, predict.conn, d=d, power=p)
-        predict.insert(_id, p, start)
-        start = start + timedelta(days=1)
+def predictTime(model, time, x):
+    p = model.predict(x)
+    return p[0]
 
 
 if __name__ == '__main__':
     version = 0
-    p = Predict()
+    predict = Predict()
     # p.delete()
-    p.auto_update()
-    """model = model_from_json(open('predict/model%d.json' % version).read())
-    date = datetime.now().date()
-    id_list = [27, 269, 270, 271, 272, 273]
-    for _id in id_list:
-        model.load_weights('predict/weight%d_%d.h5' % (version, _id))
-        predictWeek(model, date, _id, p)"""
+    r = pd.read_csv('train_x.csv')
+    r = r.fillna(-1)
+    x = np.array(r.tail(preriod))
+    x = x.reshape([1, preriod, -1])
+    model = model_from_json(open('predict/model%d.json' % version).read())
+    date = datetime.now().strftime('%Y-%m-%d') + ' '
+    codes = ['000977', '000021', '300076', '002312', '002635', '300130', '600271',
+             '300367', '002528', '000066', '002177', '300282', '300390', '300042',
+             '600100', '600074', '600734', '002376', '600601', '002180', '002351',
+             '002308', '300045', '002362', '002152', '002577', '603019']
+    stop = {}
+    for i in codes:
+        stop[i] = False
+    """d = []
+    d1 = datetime.strptime('09:35:00', '%H:%M:%S')
+    d2 = datetime.strptime('11:35:00', '%H:%M:%S')
+    d3 = datetime.strptime('13:05:00', '%H:%M:%S')
+    d4 = datetime.strptime('15:05:00', '%H:%M:%S')
+    while d1 < d2:
+        d.append(d1.strftime('%H:%M:%S'))
+        d1 = d1 + timedelta(minutes=5)
+    while d3 < d4:
+        d.append(d3.strftime('%H:%M:%S'))
+        d3 = d3 + timedelta(minutes=5)"""
+    d = ['09:35:00', '09:40:00', '09:45:00', '09:50:00', '09:55:00', '10:00:00',
+         '10:05:00', '10:10:00', '10:15:00', '10:20:00', '10:25:00', '10:30:00',
+         '10:35:00', '10:40:00', '10:45:00', '10:50:00', '10:55:00', '11:00:00',
+         '11:05:00', '11:10:00', '11:15:00', '11:20:00', '11:25:00', '11:30:00',
+         '13:05:00', '13:10:00', '13:15:00', '13:20:00', '13:25:00', '13:30:00',
+         '13:35:00', '13:40:00', '13:45:00', '13:50:00', '13:55:00', '14:00:00',
+         '14:05:00', '14:10:00', '14:15:00', '14:20:00', '14:25:00', '14:30:00',
+         '14:35:00', '14:40:00', '14:45:00', '14:50:00', '14:55:00', '15:00:00']
+    for t in d:
+        time = date + t
+        print(time)
+        p = [t]
+        p1 = []
+        for _id in codes:
+            if stop[_id]:
+                p.append([-1, -1, -1, -1, -1])
+                continue
+            model.load_weights('predict/weight%d_%s.h5' % (version, _id))
+            p0 = predictTime(model, time, x)
+            p.append(p0)
+            p1.append(p0.append(_id))
+        predict.inserts(time, p1)
+        e = np.append(x[0][1:], p)
+        x = np.reshape(np.array(e), [1, preriod, -1])

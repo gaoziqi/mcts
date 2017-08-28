@@ -19,7 +19,7 @@ def build(period):
     model.add(LSTM(lstm_len, return_sequences=True, input_shape=(period, length)))
     model.add(LSTM(lstm_len))
     model.add(Dropout(0.25))
-    model.add(Dense(4))
+    model.add(Dense(5))
     return model
 
 
@@ -29,7 +29,7 @@ def get(dt, step):
     for i in range(len(dt) - step):
         x.append(np.array(dt[i:i + step]))
         y.append(np.array(dt.ix[i + step, ['open_%s' % _id, 'close_%s' % _id,
-                                           'high_%s' % _id, 'low_%s' % _id]]))
+                                           'high_%s' % _id, 'low_%s' % _id, 'volume_%s' % _id]]))
     return np.array(x), np.array(y)
 
 

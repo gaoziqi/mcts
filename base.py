@@ -256,6 +256,36 @@ class AQI(Postgre):
             self.o3 = int(t[0:t.find('</td>')])
 
 
+class Predict(Postgre):
+
+    def __init__(self, conn=None):
+        super(Predict, self).__init__(conn)
+        self.table = 'predict'
+
+    def create(self):
+        sql = '''CREATE TABLE predict (
+            id serial,
+            date timestamp without time zone,
+            open double precision,
+            close double precision,
+            high double precision,
+            low double precision,
+            volume double precision,
+            code text,
+            CONSTRAINT predict_pkey PRIMARY KEY (id));'''
+        self._commit(sql)
+
+    def delete(self):
+        self._commit("DELETE FROM predict;SELECT SETVAL('predict_id_seq',1,false)")
+
+    def inserts(self, time, data):
+        sql = ''
+        sql1 = "INSERT INTO predict (date,open,close,high,low,volume,code) VALUES ('{1}',%f,%f,%f,%f,%f,'%s');".format(time)
+        for i in data:
+            sql += sql1 % (i[0], i[1], i[2], i[3], i[4], i[5])
+        self._commit(i)
+
+
 class Weather(object):
 
     def __init__(self):

@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import numpy as np
+import random
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, LSTM, Dropout
 from keras.callbacks import TensorBoard
@@ -17,7 +18,7 @@ def build(period):
     model.add(LSTM(lstm_len, return_sequences=True, input_shape=(period, length)))
     model.add(LSTM(lstm_len))
     model.add(Dropout(0.25))
-    model.add(Dense(4))
+    model.add(Dense(5))
     return model
 
 
@@ -27,7 +28,7 @@ def get(dt, step, _id):
     for i in range(len(dt) - step):
         x.append(np.array(dt[i:i + step]))
         y.append(np.array(dt.ix[i + step, ['open_%s' % _id, 'close_%s' % _id,
-                                           'high_%s' % _id, 'low_%s' % _id]]))
+                                           'high_%s' % _id, 'low_%s' % _id, 'volume_%s' % _id]]))
     return np.array(x), np.array(y)
 
 
@@ -52,10 +53,12 @@ if __name__ == '__main__':
     length = r.shape[1]
     model = build(period)
     #model = model_from_json(open('predict/model%d.json' % version).read())
-    codes = ('000977', '000021', '300076', '002312', '002635', '300130', '600271',
+    codes = ['000977', '000021', '300076', '002312', '002635', '300130', '600271',
              '300367', '002528', '000066', '002177', '300282', '300390', '300042',
              '600100', '600074', '600734', '002376', '600601', '002180', '002351',
-             '002308', '300045', '002362', '002152', '002577', '603019')
+             '002308', '300045', '002362', '002152', '002577', '603019']
+    random.shuffle(codes)
+    print(codes)
     for _id in codes:
         lstm(r, _id, model, version, initial_epoch, epochs, period)
     print('success')
