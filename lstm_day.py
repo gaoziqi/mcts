@@ -3,6 +3,7 @@ import sys
 import pandas as pd
 import numpy as np
 import random
+from base import Predict, codes
 from keras.models import Sequential, model_from_json
 from keras.layers import Dense, LSTM, Dropout
 from keras.callbacks import TensorBoard
@@ -49,15 +50,10 @@ _build = True
 if __name__ == '__main__':
     version = 0
     initial_epoch = 0
-    r = pd.read_csv('train_x.csv')
-    r = r.fillna(-1)
+    r = Predict().get()[0]
     length = r.shape[1]
     model = build(period)
     #model = model_from_json(open('predict/model%d.json' % version).read())
-    codes = ['000977', '000021', '300076', '002312', '002635', '300130', '600271',
-             '300367', '002528', '000066', '002177', '300282', '300390', '300042',
-             '600100', '600074', '600734', '002376', '600601', '002180', '002351',
-             '002308', '300045', '002362', '002152', '002577', '603019']
     random.shuffle(codes)
     print(codes)
     for _id in codes:

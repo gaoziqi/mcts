@@ -2,8 +2,14 @@ import os
 import psycopg2
 import requests
 import json
+import pandas as pd
 from datetime import datetime, timedelta
 from dateutil.relativedelta import relativedelta
+
+codes = ('000977', '000021', '300076', '002312', '002635', '300130', '600271',
+         '300367', '002528', '000066', '002177', '300282', '300390', '300042',
+         '600734', '002376', '600601', '002180', '002351', '002308', '300045',
+         '002362', '002152', '002577', '603019')
 
 
 class Postgre(object):
@@ -280,10 +286,32 @@ class Predict(Postgre):
 
     def inserts(self, time, data):
         sql = ''
-        sql1 = "INSERT INTO predict (date,open,close,high,low,volume,code) VALUES ('{0}',%s,%s,%s,%s,%s * 10000,'%s');".format(time)
+        sql1 = "INSERT INTO predict (date,open,close,high,low,code) VALUES ('{0}',%s,%s,%s,%s,'%s');".format(time)
         for i in data:
-            sql += sql1 % (i[0], i[1], i[2], i[3], i[4], i[5])
+            sql += sql1 % (i[0], i[1], i[2], i[3], i[4])
         self._commit(sql)
+
+    def get(self, time=datetime.now()):
+        now = time.strftime('%Y-%m-%d %H:%M:%S')
+        sql0 = 'WITH '
+        sql1 = "SELECT EXTRACT(HOUR FROM date) * 60 + EXTRACT(MINUTE FROM date) AS time,"
+        sql2 = 'FROM M_{0} '.format(codes[-1])
+        for i in codes:
+            sql0 += '''M_{1} AS (SELECT date,open as open_{1},
+                close as close_{1},high as high_{1},low as low_{1},volume / 10000 as volume_{1}
+                FROM {0} WHERE CODE='{1}' AND date>'2017-08-10' AND date<'{2}'),'''.format('price_minutes', i, now)
+            sql1 += 'open_{0},close_{0},high_{0},low_{0},volume_{0},'.format(i)
+            sql2 += 'FULL JOIN M_{0} USING(date) '.format(i)
+        sql = '%s %s %s ORDER BY date' % (sql0[:-1], sql1[:-1], sql2[:-32])
+        df = pd.read_sql(sql, self.conn)
+        df = df.fillna(method='pad')
+        df = df.fillna(method='bfill')
+        OCHL = df.tail(1)
+        t = df['time']
+        df = df.rolling(2).apply(lambda x: x[1] - x[0])
+        df['time'] = t
+        df = df.drop(0)
+        return df, OCHL
 
 
 class Weather(object):
