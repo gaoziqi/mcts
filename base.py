@@ -309,6 +309,7 @@ class Predict(Postgre):
         OCHL = df.tail(1)
         t = df['time']
         df = df.rolling(2).apply(lambda x: x[1] - x[0])
+        df = df * 100
         df['time'] = t
         df = df.drop(0)
         return df, OCHL

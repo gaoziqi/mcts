@@ -23,7 +23,7 @@ def predictDay(date, r, OCHL):
                 OCHL[_id] = np.array(r[1][['open_%s' % _id, 'close_%s' % _id,
                                            'high_%s' % _id, 'low_%s' % _id]])
             p0 = model.predict(x)
-            OCHL[_id] = p0[0] + OCHL[_id]
+            OCHL[_id] = p0[0] / 100 + OCHL[_id]
             p1.append(np.append(OCHL[_id], _id))
         predict.inserts(time, p1)
         k += 1
@@ -33,7 +33,7 @@ def predictDay(date, r, OCHL):
 if __name__ == '__main__':
     version = 0
     predict = Predict()
-    # predict.delete()
+    predict.delete()
     model = model_from_json(open('predict/model%d.json' % version).read())
     now = datetime.now()
     # now = now + timedelta(days=1)
