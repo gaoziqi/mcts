@@ -2,6 +2,28 @@ import requests
 import json
 import uuid
 import threading
+import time
+
+
+class Global(object):
+    """Global var"""
+    __global = None
+
+    def __init__(self):
+        self.data = {}
+        self.mutex = False  # 线程间安全锁
+        self.process = 15  # 开启线程数量
+        self.period = 5  # 连续访问间隔时间
+
+    @staticmethod
+    def get_instance():
+        if Global.__global is None:
+            Global.__global = Global()
+        return Global.__global
+
+
+def _global():
+    return Global.get_instance()
 
 
 with open('port.json', 'r') as r:
@@ -22,6 +44,14 @@ headers = {
 
 search = 'RDMU2002133'
 url = "http://www.chinaports.com/containerTracker/allresult2/{0}/0/{1}/{2}/{3}"
+
+
+def run():
+    while _global().mutex:
+        time.sleep(1)
+    _global().mutex = True
+    _global().process -= 1
+    _global().mutex = False
 
 
 def find(search):
@@ -59,5 +89,15 @@ def _format(r):
         ))
     return result
 
+"""
+while _global().process > process_max:
+            time.sleep(5)
+        t = threading.Thread(target=run_yt, args=(user, times))
+        t.start()
+        _global().mutex = True
+        _global().process += 1
+        _global().mutex = False
+        i += 1
+"""
 a = _format(find(search))
 print(a)
