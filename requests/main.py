@@ -10,10 +10,16 @@ class Global(object):
     __global = None
 
     def __init__(self):
-        self.data = {}
+        self.data = []
         self.mutex = False  # 线程间安全锁
         self.process = 15  # 开启线程数量
         self.period = 5  # 连续访问间隔时间
+
+    def stop(self):
+        if len(self.data) > 0:
+            return True
+        else:
+            return False
 
     @staticmethod
     def get_instance():
@@ -29,6 +35,10 @@ def _global():
 with open('port.json', 'r') as r:
     port = json.load(r)
 
+with open('number.json', 'r') as r:
+    search = json.load(r)
+
+
 headers = {
     'Accept': '*/*',
     'Accept-Encoding': 'gzip, deflate, sdch, dr',
@@ -42,35 +52,36 @@ headers = {
         like Gecko) Chrome/54.0.2840.71 Safari/537.36'
 }
 
-search = 'RDMU2002133'
 url = "http://www.chinaports.com/containerTracker/allresult2/{0}/0/{1}/{2}/{3}"
 
 
-def run():
-    while _global().mutex:
-        time.sleep(1)
-    _global().mutex = True
-    _global().process -= 1
-    _global().mutex = False
+def run(url):
+    try:
+        r = requests.post(url, headers=headers, timeout=1)
+        if r.status_code == 200:
+            try:
+                if r.text != {}:
+                    result = json.loads(r.text)['data']
+                    if result and result['resultList'] and len(result['resultList']) > 0:
+                        _global().data.append(result)
+            except:
+                print(r.text)
+    except:
+        pass
 
 
 def find(search):
-    result = None
+    threads = []
+    _global().data = []
     for i in port:
         url1 = url.format(search, i, port[i], uuid.uuid1())
-        try:
-            r = requests.post(url1, headers=headers, timeout=5)
-        except:
-            continue
-        if r.status_code == 200:
-            try:
-                result = json.loads(r.text)['data']
-            except:
-                print(r.text)
-            if result and result['resultList'] and len(result['resultList']) > 0:
-                break
-    print(result)
-    return result
+        t = threading.Thread(target=run, args=(url1,))
+        t.setDaemon(True)
+        t.start()
+        threads.append(t)
+    for t in threads:
+        t.join()
+    return _global().data
 
 
 def _format(r):
@@ -89,15 +100,18 @@ def _format(r):
         ))
     return result
 
-"""
-while _global().process > process_max:
-            time.sleep(5)
-        t = threading.Thread(target=run_yt, args=(user, times))
-        t.start()
-        _global().mutex = True
-        _global().process += 1
-        _global().mutex = False
-        i += 1
-"""
-a = _format(find(search))
-print(a)
+
+ii = 0
+
+w = open('Result.csv', 'w')
+w.write('箱号,箱型,码头名称,进场时间,出场时间,营运人,船名,车队,目的港\n')
+for s in search:
+    d = find(s)
+    for a in d:
+        r = _format(a)
+        for b in r:
+            w.write('%s\n' % b.__str__()
+                    [1:-1].replace("'", ''))
+    ii += 1
+    print(ii)
+w.close()
