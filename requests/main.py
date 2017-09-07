@@ -1,6 +1,7 @@
 import requests
 import json
 import uuid
+import threading
 
 
 with open('port.json', 'r') as r:
@@ -21,8 +22,42 @@ headers = {
 
 search = 'RDMU2002133'
 url = "http://www.chinaports.com/containerTracker/allresult2/{0}/0/{1}/{2}/{3}"
-url1 = url.format(search, 49, port['49'], uuid.uuid1())
-r = requests.post(url1, headers=headers)
-if r.status_code == 200:
-    a = json.loads(r.text)
-    print(a)
+
+
+def find(search):
+    result = None
+    for i in port:
+        url1 = url.format(search, i, port[i], uuid.uuid1())
+        try:
+            r = requests.post(url1, headers=headers, timeout=5)
+        except:
+            continue
+        if r.status_code == 200:
+            try:
+                result = json.loads(r.text)['data']
+            except:
+                print(r.text)
+            if result and result['resultList'] and len(result['resultList']) > 0:
+                break
+    print(result)
+    return result
+
+
+def _format(r):
+    result = []
+    for i in r['resultList']:
+        result.append((
+            i['xianghao'],
+            i['xiangxing'],
+            r['port_name'],
+            i['jinchangtime'],
+            i['chuchangtime'],
+            i['yingyunren'],
+            i['shipname'],
+            i['chedui'],
+            i['mudigang']
+        ))
+    return result
+
+a = _format(find(search))
+print(a)
