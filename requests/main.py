@@ -57,7 +57,7 @@ url = "http://www.chinaports.com/containerTracker/allresult2/{0}/0/{1}/{2}/{3}"
 
 def run(url):
     try:
-        r = requests.post(url, headers=headers, timeout=1)
+        r = requests.post(url, headers=headers, timeout=15)
         if r.status_code == 200:
             try:
                 if r.text != {}:
@@ -114,4 +114,6 @@ for s in search:
                     [1:-1].replace("'", ''))
     ii += 1
     print(ii)
+    w.flush()
+    time.sleep(5)
 w.close()
