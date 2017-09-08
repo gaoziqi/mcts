@@ -57,7 +57,8 @@ url = "http://www.chinaports.com/containerTracker/allresult2/{0}/0/{1}/{2}/{3}"
 
 def run(url):
     try:
-        r = requests.post(url, headers=headers, timeout=15)
+        # timeout 每个线程的最大等待时间，建议不要小于5秒，有些港口数据需要40秒才能返回，如果要爬取全部数据建议大于60
+        r = requests.post(url, headers=headers, timeout=5)
         if r.status_code == 200:
             try:
                 if r.text != {}:
@@ -74,18 +75,21 @@ def find(search):
     threads = []
     _global().data = []
     for i in port:
+        # 由于有50个港口，一共开启50个线程同时查询
         url1 = url.format(search, i, port[i], uuid.uuid1())
         t = threading.Thread(target=run, args=(url1,))
         t.setDaemon(True)
         t.start()
         threads.append(t)
     for t in threads:
+        # 等待所有线程执行结束
         t.join()
     return _global().data
 
 
 def _format(r):
     result = []
+    # 结果格式化（输出数据的格式）
     for i in r['resultList']:
         result.append((
             i['xianghao'],
@@ -102,18 +106,33 @@ def _format(r):
 
 
 ii = 0
-
-w = open('Result.csv', 'w')
+ff = 0
+w = open('result.csv', 'w')   # 结果保存文件名
+w1 = open('error.json', 'w')  # 爬取失败或无数据的箱号
 w.write('箱号,箱型,码头名称,进场时间,出场时间,营运人,船名,车队,目的港\n')
+w1.write('[')
+dot = ''
+search = search[7000:7100]
+print(len(search))  # 爬取集装箱总数
 for s in search:
+    finish = False
     d = find(s)
     for a in d:
         r = _format(a)
         for b in r:
+            finish = True
             w.write('%s\n' % b.__str__()
                     [1:-1].replace("'", ''))
     ii += 1
-    print(ii)
+    print(ii)  # 当前爬取了几个
+    if not finish:
+        ff += 1
+        w1.write('%s"%s"' % (dot, s))
+        dot = ','
+        w1.flush()
     w.flush()
-    time.sleep(5)
+    time.sleep(1)  # 相邻两个港口查询间隔，如果timeout很小，建议增加间隔，预防ip被封（ip被封一般也就一小时左右）
 w.close()
+w1.write(']')
+w1.close()
+print(ff)   # 爬取失败或没数据总数
