@@ -87,21 +87,22 @@ def find(search):
     return _global().data
 
 
-def _format(r):
+def _format(r, xianghao):
     result = []
     # 结果格式化（输出数据的格式）
     for i in r['resultList']:
-        result.append((
-            i['xianghao'],
-            i['xiangxing'],
-            r['port_name'],
-            i['jinchangtime'],
-            i['chuchangtime'],
-            i['yingyunren'],
-            i['shipname'],
-            i['chedui'],
-            i['mudigang']
-        ))
+        if xianghao == i['xianghao']:
+            result.append((
+                i['xianghao'],
+                i['xiangxing'],
+                r['port_name'],
+                i['jinchangtime'],
+                i['chuchangtime'],
+                i['yingyunren'],
+                i['shipname'],
+                i['chedui'],
+                i['mudigang']
+            ))
     return result
 
 
@@ -112,13 +113,12 @@ w1 = open('error.json', 'w')  # 爬取失败或无数据的箱号
 w.write('箱号,箱型,码头名称,进场时间,出场时间,营运人,船名,车队,目的港\n')
 w1.write('[')
 dot = ''
-search = search[7000:7100]
 print(len(search))  # 爬取集装箱总数
 for s in search:
     finish = False
     d = find(s)
     for a in d:
-        r = _format(a)
+        r = _format(a, s)
         for b in r:
             finish = True
             w.write('%s\n' % b.__str__()

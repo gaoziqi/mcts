@@ -27,7 +27,7 @@ if __name__ == '__main__':
             sys.exit()
     if commit:
         os.system('git add *')
-        os.system('git commit -m \'%s\'' % time.strftime('%Y-%m-%d %X',
+        os.system('git commit -m \'%s\'' % time.strftime('%Y-%m-%d_%X',
                                                          time.localtime()))
         os.system('git push origin master')
         print('提交完成')
